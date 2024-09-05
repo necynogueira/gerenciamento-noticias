@@ -1,0 +1,13 @@
+{
+    "name": "gerenciamento-noticias",
+    "dockerComposeFile": "docker-compose.yml",
+    "service": "gerenciamento-noticias",
+    "workspaceFolder": "/workspace",
+    "settings": {
+        "python.pythonPath": "/usr/local/bin/python",
+        "python.defaultInterpreterPath": "/usr/local/bin/python"
+    },
+    "extensions": ["ms-python.python", "ms-python.vscode-pylance", "ms-python.debugpy"],
+    "overrideCommand": true,
+    "remoteUser": "root"
+}
