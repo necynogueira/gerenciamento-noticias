@@ -1,5 +1,8 @@
 version: '3.4'
 
+networks:
+  default:
+    driver: bridge
 
 services:
   gerenciamento-noticias:
@@ -12,6 +15,8 @@ services:
       - postgres
     depends_on:
       - postgres
+    networks:
+      - default
 
   postgres:
     image: postgres:latest
@@ -24,3 +29,5 @@ services:
       - ./pgdata:/var/lib/postgresql/data
     ports:
       - "5432:5432"
+    networks:
+      - default
