@@ -33,7 +33,7 @@ def adicionar_noticia(request):
             'data_criacao': data_criacao
         }
 
-        return JsonResponse(banco[identificador])
+        return JsonResponse(banco[identificador], status=201)
     else:
         return JsonResponse({"error": "Método não permitido"}, status=405)
 
@@ -50,7 +50,7 @@ def editar_noticia(request):
         identificador = dados.get('id')
         titulo = dados.get('titulo')
         conteudo = dados.get('conteudo')
-        publicado = dados.get('publicado') == 'true'
+        publicado = dados.get('publicado') 
         autor = dados.get('autor')
 
         # Verifica se a notícia existe
@@ -81,6 +81,18 @@ def remover_noticia(request):
             # Remove a notícia
             del banco[identificador]
             return JsonResponse({"message": "Notícia removida com sucesso"})
+        else:
+            return JsonResponse({"error": "Notícia não encontrada"}, status=404)
+    else:
+        return JsonResponse({"error": "Método não permitido"}, status=405)
+
+@csrf_exempt
+def listar_noticia(request, identificador):
+    if request.method == "GET":
+        # Verifica se a notícia existe
+        if identificador in banco:
+            # Retorna a notícia
+            return JsonResponse(banco[identificador])
         else:
             return JsonResponse({"error": "Notícia não encontrada"}, status=404)
     else:
