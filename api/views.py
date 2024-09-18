@@ -1,101 +1,41 @@
+from rest_framework import viewsets
+from rest_framework.response import Response
+from rest_framework import status
+from .models import Noticia
+from .serializers import NoticiaSerializer
 
-from django.http import JsonResponse
-import uuid
-from datetime import datetime
-from django.views.decorators.csrf import csrf_exempt
-import json
+class NoticiaViewSet(viewsets.ModelViewSet):
+    queryset = Noticia.objects.all()
+    serializer_class = NoticiaSerializer
 
-banco = {}
+    def list(self, request):
+        queryset = self.get_queryset()
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
 
-@csrf_exempt
-def adicionar_noticia(request):
-    if request.method == "POST":
-        # Extrai dados do corpo da requisição JSON
-        dados = request.POST
-        
-        # Extrai dados
-        titulo = dados.get('titulo')
-        conteudo = dados.get('conteudo')
-        publicado = dados.get('publicado') == 'true'
-        autor = dados.get('autor')
+    def retrieve(self, request, pk=None):
+        queryset = self.get_queryset()
+        noticia = self.get_object()
+        serializer = self.get_serializer(noticia)
+        return Response(serializer.data)
 
-        # Gera um identificador único e data de criação
-        identificador = uuid.uuid4().hex
-        data_criacao = str(datetime.now())
+    def create(self, request):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+        headers = self.get_success_headers(serializer.data)
+        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
 
-        # Adiciona ao "banco" de dados
-        banco[identificador] = {
-            'id': identificador,
-            'titulo': titulo,
-            'conteudo': conteudo,
-            'autor': autor,
-            'publicado': publicado,
-            'data_criacao': data_criacao
-        }
+    def update(self, request, pk=None):
+        noticia = self.get_object()
+        serializer = self.get_serializer(noticia, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer)
+        return Response(serializer.data)
 
-        return JsonResponse(banco[identificador], status=201)
-    else:
-        return JsonResponse({"error": "Método não permitido"}, status=405)
+    def destroy(self, request, pk=None):
+        noticia = self.get_object()
+        self.perform_destroy(noticia)
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
-def listar_todas_noticias( request):
-    return JsonResponse(banco)
 
-@csrf_exempt
-def editar_noticia(request):
-    if request.method == "PUT":
-        dados = json.loads(request.body)
-
-        
-        # Extrai os dados do request
-        identificador = dados.get('id')
-        titulo = dados.get('titulo')
-        conteudo = dados.get('conteudo')
-        publicado = dados.get('publicado') 
-        autor = dados.get('autor')
-
-        # Verifica se a notícia existe
-        if identificador in banco:
-            # Atualiza a notícia existente
-            banco[identificador].update({
-                'titulo': titulo,
-                'conteudo': conteudo,
-                'autor': autor,
-                'publicado': publicado,
-                'data_criacao': banco[identificador]['data_criacao']  # Mantém a data de criação original
-            })
-            return JsonResponse(banco[identificador])
-        else:
-            return JsonResponse({"error": "Notícia não encontrada"}, status=404)
-    else:
-        return JsonResponse({"error": "Método não permitido"}, status=405)
-
-@csrf_exempt
-def remover_noticia(request):
-    if request.method == "DELETE":
-        # Extrai dados do corpo da requisição JSON
-        dados = json.loads(request.body)
-        identificador = dados.get('id')
-
-        # Verifica se a notícia existe
-        if identificador in banco:
-            # Remove a notícia
-            del banco[identificador]
-            return JsonResponse({"message": "Notícia removida com sucesso"})
-        else:
-            return JsonResponse({"error": "Notícia não encontrada"}, status=404)
-    else:
-        return JsonResponse({"error": "Método não permitido"}, status=405)
-
-@csrf_exempt
-def listar_noticia(request, identificador):
-    if request.method == "GET":
-        # Verifica se a notícia existe
-        if identificador in banco:
-            # Retorna a notícia
-            return JsonResponse(banco[identificador])
-        else:
-            return JsonResponse({"error": "Notícia não encontrada"}, status=404)
-    else:
-        return JsonResponse({"error": "Método não permitido"}, status=405)
-
-   
